@@ -109,6 +109,20 @@ class ReviewLikeDislikeView(APIView):
             'like_count':review.likes.count(),
             'dislike_count':review.dislikes.count()
             }, status=status.HTTP_200_OK)
+
+
+def create_notification(user,action, target):
+    """create a notification with structured message"""
+    message = ''
+    if action == 'like':
+        message = f"{user.username} liked your review on {target}!"
+    elif action == 'dislike':
+        message = f"{user.username} disliked your review on {target}!"
+    elif action == 'comment':
+        message = f"{user.username} commented on {target}:Great dish!"
+    else:
+        message = f"{user.username} sent a notification."
+    Notification.objects.create(user=user, message=message)
     
 # create api to fetch notifications
 class NotificationListView(generics.ListAPIView):
