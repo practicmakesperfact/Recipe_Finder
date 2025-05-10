@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 from django.contrib.auth.models import User
-
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Recipe(models.Model):
     name =models.CharField(max_length=225)
@@ -13,6 +13,7 @@ class Recipe(models.Model):
     category =models.CharField(max_length=100)
     rating = models.FloatField(default=0)
     author = models.ForeignKey(User,on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
     
     
     def __str__(self):
@@ -32,7 +33,12 @@ class Ingredient(models.Model):
 class Review(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     recipe = models.ForeignKey('Recipe',related_name="reviews",on_delete=models.CASCADE)
-    rating = models.IntegerField()
+    rating = models.IntegerField(
+        validators= [
+            MinValueValidator(1),
+            MaxValueValidator(5)
+        ]
+    ) 
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     likes = models.ManyToManyField(User,related_name="liked_reviews",blank=True)
@@ -57,8 +63,7 @@ class Notification(models.Model):
     def __str__(self):
         return f"Notification for {self.user.username}: {self.message}"
     
-    def __str__(self):
-        return self.message
+  
 class Profile(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE)
     favorites =models.ManyToManyField('Recipe',related_name="favorited_by", blank=True)

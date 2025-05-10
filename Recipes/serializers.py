@@ -1,11 +1,14 @@
 from rest_framework import serializers
 from .models import Recipe,Ingredient,Review,Profile,Notification
+from django.core.validators import MinValueValidator,MaxValueValidator
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    author = serializers.ReadOnlyField(source='author.username')
     class Meta:
         model = Recipe
         fields = '__all__'
+        read_only_fields = ['author','created_at']  # prevent modification of these fields
         
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,7 +18,13 @@ class IngredientSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     user =serializers.ReadOnlyField(source = 'user.username')
     recipe = serializers.PrimaryKeyRelatedField(read_only=True)
-    rating = serializers.IntegerField(required=True)
+    rating = serializers.IntegerField(
+        required=True,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(5)
+        ]
+    )
     comment = serializers.CharField(required=True)
     like_count = serializers.SerializerMethodField()
     dislike_count = serializers.SerializerMethodField()
@@ -38,13 +47,9 @@ class NotificationSerializer(serializers.ModelSerializer):
         read_only_fields = ['id','message','created_at']  # prevent users from modifing these fileds
         
 class ProfileSerializer(serializers.ModelSerializer):
+    favorites = RecipeSerializer(many=True, read_only=True) #shows full recipe details
     class Meta:
         model = Profile
-        fields = '__all__'
+        fields = 'user','favorites'
+        read_only_fields = ['user']
         
-class ProfileSerializer(serializers.ModelSerializer):
-    favorites = serializers.PrimaryKeyRelatedField(many=True, queryset=Recipe.objects.all())
-
-    class Meta:
-        model = Profile
-        fields = ['favorites']
