@@ -1,6 +1,8 @@
 from django.shortcuts import render,get_object_or_404
 
 # Create your views here.
+from django.http import JsonResponse
+from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework import viewsets,permissions,generics,status
 from rest_framework.response import Response
@@ -8,9 +10,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from  rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView
-
-from django.http import JsonResponse
-from django.contrib.auth.models import User
 from .models import Recipe,Ingredient,Review,Profile,Notification
 from .serializers import RecipeSerializer,IngredientSerializer,ReviewSerializer,ProfileSerializer,NotificationSerializer
 import json
@@ -22,7 +21,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]   # adjust permissions later
-    
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user) # save the author as the logged-in user
+        
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
@@ -71,62 +72,47 @@ class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
    
    
 class ReviewLikeDislikeView(APIView):
-    """Allow users to like or dislike a review and sends a notifications"""
     permission_classes = [permissions.IsAuthenticated]
-    
-    def post(self,request,review_id,action):
-        review = get_object_or_404(Review,id=review_id)
+
+    def post(self, request, review_id, action):
+        review = get_object_or_404(Review, id=review_id)
         user = request.user
-        reviewer =review.user  # get the owner of the review
-        
+        reviewer = review.user
+
         if action == 'like':
             if user in review.likes.all():
                 review.likes.remove(user)
-                return Response({'message':'like removed'}, status = status.HTTP_200_OK)
-            review.likes.add(user)
-            review.dislikes.remove(user) #remove dislikes if it exists
-            
-            # create a notification to the review owner
-            if reviewer != user: # don't notify the user who liked their own review
-                Notification.objects.create(user=reviewer, 
-                                            message=f"{user.username} liked your review on {review.recipe.name}!"
-                                            )
-                
-            
+                message = 'Like removed'
+            else:
+                review.likes.add(user)
+                review.dislikes.remove(user)  # Remove dislike if exists
+                message = 'Review liked'
+                if reviewer != user:
+                    Notification.objects.create(
+                        user=reviewer,
+                        message=f"{user.username} liked your review on {review.recipe.name}!"
+                    )
+
         elif action == 'dislike':
             if user in review.dislikes.all():
-                review.displikes.remove(user)
-                return Response({'message':'dislike removed'}, status = status.HTTP_200_OK)
-            review.dislikes.add(user)
-            review.likes.remove(user)
-            
-            # create notification for the review owner
-            if reviewer != user:
-                Notification.objects.create(user=reviewer, 
-                                            message=f"{user.username} disliked your review on {review.recipe.name}!"
-                                            )
-                
-        
+                review.dislikes.remove(user)
+                message = 'Dislike removed'
+            else:
+                review.dislikes.add(user)
+                review.likes.remove(user)  # Remove like if exists
+                message = 'Review disliked'
+                if reviewer != user:
+                    Notification.objects.create(
+                        user=reviewer,
+                        message=f"{user.username} disliked your review on {review.recipe.name}!"
+                    )
+
         review.save()
         return Response({
-            'like_count':review.likes.count(),
-            'dislike_count':review.dislikes.count()
-            }, status=status.HTTP_200_OK)
-
-
-def create_notification(user,action, target):
-    """create a notification with structured message"""
-    message = ''
-    if action == 'like':
-        message = f"{user.username} liked your review on {target}!"
-    elif action == 'dislike':
-        message = f"{user.username} disliked your review on {target}!"
-    elif action == 'comment':
-        message = f"{user.username} commented on {target}:Great dish!"
-    else:
-        message = f"{user.username} sent a notification."
-    Notification.objects.create(user=user, message=message)
-    
+            'message': message,
+            'like_count': review.likes.count(),
+            'dislike_count': review.dislikes.count()
+        }, status=status.HTTP_200_OK)
 # create api to fetch notifications
 class NotificationListView(generics.ListAPIView):
     """return a list of unread notifications for the logged-in user."""
