@@ -2,7 +2,7 @@ from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from .views import RecipeViewSet,IngredientViewSet,ReviewViewSet,ProfileViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
-from .views import FavoriteRecipeView,FavoriteRecipeListView,ReviewListCreateView,ReviewDetailView,ReviewLikeDislikeView,NotificationListView,MarkNotificationAsReadView,MarkAllNotificationsAsReadView
+from .views import FavoriteRecipeView,FavoriteRecipeListView,ReviewListCreateView,ReviewDetailView,ReviewLikeDislikeView,NotificationListView,MarkNotificationAsReadView,MarkAllNotificationsAsReadView,RecipeSearchView
 
 router = DefaultRouter()
 router.register(r'Recipes',RecipeViewSet)
@@ -22,7 +22,5 @@ urlpatterns = [
     path('notifications/',NotificationListView.as_view(),name='notifications_list'),
     path('notifications/<int:pk>/read/',MarkNotificationAsReadView.as_view(),name='mark_notification_read'),
     path('notifications/read-all/',MarkAllNotificationsAsReadView.as_view(),name='mark_all_notifications_read'),
-    
- 
-    
+    path('recipes/search/', RecipeSearchView.as_view(), name='recipe_search'), 
 ]

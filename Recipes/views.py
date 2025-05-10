@@ -203,3 +203,23 @@ class FavoriteRecipeListView(generics.ListAPIView):
 
 def home(request):
     return render(request, 'index.html')
+
+
+class RecipeSearchView(generics.ListAPIView):
+    serializer_class = RecipeSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        queryset = Recipe.objects.all()
+        ingredients = self.request.query_params.get('ingredients', None)
+        category = self.request.query_params.get('category', None)
+        dietary_restrictions = self.request.query_params.get('dietary_restrictions', None)
+
+        if ingredients:
+            queryset = queryset.filter(ingredients__icontains=ingredients)
+        if category:
+            queryset = queryset.filter(category__iexact=category)
+        if dietary_restrictions:
+            queryset = queryset.filter(dietary_restrictions__iexact=dietary_restrictions)
+
+        return queryset
