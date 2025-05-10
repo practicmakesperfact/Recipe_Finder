@@ -20,7 +20,7 @@ from Recipes.views import home
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/',include('Recipes.urls')), # include the urls from the Recipes app
+    path('api/',include('Recipes.urls')), 
        #frontend urls
     path("", home, name="home"),
 ]

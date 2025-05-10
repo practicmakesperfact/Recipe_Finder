@@ -1,27 +1,53 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notifications | Recipe Finder</title>
-    <link rel="stylesheet" href="../static/css/styles.css">
+    <!-- TailwindCSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- DOMPurify for XSS protection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js"></script>
 </head>
-<body>
+<body class="bg-gray-100 font-sans">
+    <!-- Login Form -->
+    {% comment %} <div id="loginContainer" class="container mx-auto p-4 max-w-md">
+        <h3 class="text-2xl font-bold mb-4 text-center">Login to Recipe Finder</h3>
+        <form id="loginForm" class="bg-white p-6 rounded shadow-md">
+            <div class="mb-4">
+                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                <input type="text" id="username" name="username" class="mt-1 block w-full p-2 border border-gray-300 rounded" required>
+            </div>
+            <div class="mb-4">
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" name="password" class="mt-1 block w-full p-2 border border-gray-300 rounded" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
+            <p id="loginError" class="text-red-500 text-sm mt-2 hidden"></p>
+        </form>
+    </div> {% endcomment %}
 
-    <!-- Notification Icon -->
-    <div class="notification-container">
-        <span class="notification-icon" onclick="toggleDropdown()">🔔</span>
-        <span class="notification-badge" id="notificationBadge">0</span>
-
-        <!-- Notification Dropdown -->
-        <div class="notification-dropdown" id="notificationDropdown">
-            <ul id="notificationList">
-                <li class="mark-all-read" onclick="markAllAsRead()">Mark All as Read</li>
-            </ul>
+    <!-- Notification Section -->
+    <div id="notificationContainer" class="container mx-auto p-4 hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-2xl font-bold">Notifications</h3>
+            <button id="logoutButton" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
         </div>
+        <!-- Notification Icon -->
+        <div class="relative">
+            <span class="cursor-pointer text-2xl" onclick="toggleDropdown()">🔔</span>
+            <span id="notificationBadge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2 hidden">0</span>
+            <!-- Notification Dropdown -->
+            <div id="notificationDropdown" class="absolute right-0 mt-2 w-64 bg-white rounded shadow-lg hidden transition-opacity duration-300 opacity-0">
+                <ul id="notificationList" class="py-2">
+                    <li class="px-4 py-2 text-sm text-blue-500 cursor-pointer hover:bg-gray-100" onclick="markAllAsRead()">Mark All as Read</li>
+                </ul>
+            </div>
+        </div>
+        <div id="notificationError" class="text-red-500 mt-2 hidden"></div>
     </div>
 
-    <script src="../static/js/notifications.js"></script>
-
+    <script src="{% static 'js/notifications.js' %}"></script>
 </body>
 </html>

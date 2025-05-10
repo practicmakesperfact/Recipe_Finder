@@ -1,26 +1,59 @@
-const API_BASE_URL = "http://127.0.0.1:8000/api";  // Backend API URL
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQwNzQzOTI2LCJpYXQiOjE3NDA3NDM2MjYsImp0aSI6ImUwNDUwNDJkNDUzODQ5NThiMDgxMGRmMGFmNTEwNTJjIiwidXNlcl9pZCI6MX0.K6yM4OLAfu6mS1B2CpKeH6LbNbabWzB4lbuz-oR1_34";  // Replace with a valid token
 
-
+fetch("http://127.0.0.1:8000/api/token/",{
+    method:'POST',
+    headers:{
+        'Content-Type':'application/json'
+    },
+    body:JSON.stringify({username:'RecipeFinder',password:'RecipeFinder'})
+})
+.then(response=>response.json())
+.then(data=>{
+    if(data.access && data.refresh){
+        localStorage.setItem("authToken", data.access);
+        localStorage.setItem("refreshToken", data.refresh);
+        console.log("access Token and Refresh Token saved to localStorage.");
+    }else{
+        console.error("Login failed:No tokens recived.");
+    }
+})
+.catch(error=>{
+    console.error("Login failed:", error);
+});
 // Fetch Unread Notifications
 async function fetchNotifications() {
-    const token = localStorage.getItem("authToken");
+    let token = localStorage.getItem("authToken");
     console.log("Debug:Retrieved Token:", token);
-    if(!token){
-        console.error("No token found in localStorage.");
-        return;
 
+    if(!token){
+        console.error("No token found in localStorage. Trying to refresh...");
+       const refreshed = await refreshAuthToken();
+        token = localStorage.getItem("authToken");
+
+        if(!refreshed || !token){
+            console.error('Failed to refresh token. Stopping retries.');
+            return;
+        }    
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/notifications/`, {
+        const response = await fetch("http://127.0.0.1:8000/api/notifications/", {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             }
         });
-
+        // if unauthorized (401) , stop retrying
+       if (response.status === 401) {
+        console.warn('Token expired. Refreshing...');
+        if(retrycount >=1 ){
+            console.error('Token refresh failed. Stopping further API calls.');
+            return;
+        }
+        await refreshAuthToken();
+        return fetchNotifications(retrycount+1);
+      
+       }
         if (!response.ok) throw new Error("Failed to fetch notifications.");
 
         const notifications = await response.json();
@@ -65,6 +98,42 @@ function updateNotificationUI(notifications) {
             notificationList.innerHTML += "<li>No new notifications</li>";
         }
 }
+
+
+//Handel Expired tokens (auto refresh )
+
+async function refreshAuthToken(){
+    const refreshToken = localStorage.getItem("refreshToken");
+    if(!refreshToken){
+     console.error("no refresh token available. user needs to log in again.");
+     return false;
+    }
+    try{
+     const response = await fetch(`${API_BASE_URL}/token/refresh/`,{
+         method:"POST",
+         headers:{
+             "Content-Type":"application/json"
+         },
+         body:JSON.stringify({ refresh: refreshToken })
+     });
+     const data = await response.json();
+ 
+     if(data.access){
+         localStorage.setItem("authToken", data.access);
+         console.log("Token refreshed successfully.");
+         return true;
+     }else{
+         console.error("Failed to refresh token:", data);
+         localStorage.removeItem("authToken");
+         localStorage.removeItem("refreshToken");
+         return false;
+     }
+    }catch(error){
+     console.error("Error refreshing token:", error);
+     return false;
+    }
+ }
+ 
 // Toggle Notification Dropdown with animation
 function toggleDropdown() {
     const dropdown = document.getElementById("notificationDropdown");
@@ -87,8 +156,9 @@ function toggleDropdown() {
 
 // Mark a Single Notification as Read
 async function markNotificationAsRead(notificationId, element) {
+    let token = localStorage.getItem("authToken");
     try {
-        await fetch(`${API_BASE_URL}/notifications/${notificationId}/read/`, {
+        const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}/read/`, {
             method: "PATCH",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -96,9 +166,12 @@ async function markNotificationAsRead(notificationId, element) {
             },
             body: JSON.stringify({ is_read: true })
         });
-
+       if (response.ok){
         element.remove();
         fetchNotifications();
+       }else{
+        console.error("Failed to mark notification as read.");
+       }       
     } catch (error) {
         console.error("Error marking notification as read:", error);
     }
@@ -106,6 +179,7 @@ async function markNotificationAsRead(notificationId, element) {
 
 // Mark All Notifications as Read
 async function markAllAsRead() {
+    let token = localStorage.getItem("authToken");
     try {
         const response = await fetch(`${API_BASE_URL}/notifications/read-all/`, {
             method: "PATCH",
@@ -115,7 +189,7 @@ async function markAllAsRead() {
             }
         });
          if(response.ok){
-              fetchNotifications();
+              await fetchNotifications();
          }
         
     } catch (error) {

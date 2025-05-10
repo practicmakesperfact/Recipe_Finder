@@ -5,15 +5,18 @@ from rest_framework.views import APIView
 from rest_framework import viewsets,permissions,generics,status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from  rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView
 
 from django.http import JsonResponse
-import json
 from django.contrib.auth.models import User
 from .models import Recipe,Ingredient,Review,Profile,Notification
 from .serializers import RecipeSerializer,IngredientSerializer,ReviewSerializer,ProfileSerializer,NotificationSerializer
+import json
+import logging
 
+logger = logging.getLogger(__name__)
 # CREAT API VIEWS
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
@@ -95,7 +98,7 @@ class ReviewLikeDislikeView(APIView):
                 review.displikes.remove(user)
                 return Response({'message':'dislike removed'}, status = status.HTTP_200_OK)
             review.dislikes.add(user)
-            review.likes.remove(user) #remove likes if it exists
+            review.likes.remove(user)
             
             # create notification for the review owner
             if reviewer != user:
@@ -186,10 +189,17 @@ class FavoriteRecipeView(generics.UpdateAPIView):
                 return Response({'message':'Recipe added to favorites'})
         except Recipe.DoesNotExist:
             return Response({'message':'Recipe not found'},status=404)
-    # create authentication views JWT 
     
+    # create authentication views JWT    
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        logger.info(f"Login attempt for username: {attrs['username']}")
+        return data
+
 class CustomTokenObtainPairView(TokenObtainPairView):
-  pass
+    serializer_class = CustomTokenObtainPairSerializer
+
 
 class CustomTokenRefreshView(TokenRefreshView):
     pass
