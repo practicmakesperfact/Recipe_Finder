@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="my-8 max-w-md mx-auto">
+        <h1 class="text-3xl font-bold mb-4">Register</h1>
+        <form id="register-form">
+            <div class="mb-4">
+                <label for="username" class="block">Username:</label>
+                <input type="text" id="username" name="username" required class="border p-2 rounded w-full">
+            </div>
+            <div class="mb-4">
+                <label for="email" class="block">Email:</label>
+                <input type="email" id="email" name="email" required class="border p-2 rounded w-full">
+            </div>
+            <div class="mb-4">
+                <label for="password" class="block">Password:</label>
+                <input type="password" id="password" name="password" required class="border p-2 rounded w-full">
+            </div>
+            <button type="submit" class="bg-blue-600 text-white p-2 rounded w-full">Register</button>
+        </form>
+    </div>
+
+    <script src="{% static 'js/register.js' %}"></script>
+{% endblock %}
