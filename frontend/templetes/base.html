@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Finder</title>
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold">Recipe Finder</a>
+            <div class="flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                    <a href="/profile/" class="hover:underline">Profile</a>
+                    <div id="notification-icon" class="relative">
+                        <span class="cursor-pointer">🔔</span>
+                        <span id="unread-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                    </div>
+                    <div id="notification-dropdown" class="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg hidden">
+                        <div id="notification-list" class="p-2 max-h-64 overflow-y-auto"></div>
+                        <button id="mark-all-read" class="w-full text-center text-blue-600 hover:underline p-2">Mark All as Read</button>
+                    </div>
+                    <a href="/logout/" class="hover:underline">Logout</a>
+                {% else %}
+                    <a href="/login/" class="hover:underline">Login</a>
+                    <a href="/register/" class="hover:underline">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    <main class="container mx-auto p-4">
+        {% block content %}
+        {% endblock %}
+    </main>
+    <script src="{% static 'js/notifications.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="my-8">
+        <h1 class="text-3xl font-bold text-center">Find Your Perfect Recipe</h1>
+        <div class="mt-4 flex justify-center">
+            <input id="search-input" type="text" placeholder="Enter ingredients (e.g., chicken, rice)" class="border p-2 rounded-l-lg w-1/2">
+            <button id="search-btn" class="bg-blue-600 text-white p-2 rounded-r-lg">Search</button>
+        </div>
+    </div>
+
+    <div id="search-results" class="grid grid-cols-1 md:grid-cols-3 gap-4 my-8"></div>
+
+    <h2 class="text-2xl font-bold my-4">Trending Recipes</h2>
+    <div id="trending-recipes" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+
+    <script src="{% static 'js/home.js' %}"></script>
+{% endblock %}
