@@ -16,11 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from django.conf import settings
+from django.conf.urls.static import static
 from Recipes.views import home
-
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/',include('Recipes.urls')), 
-       #frontend urls
-    path("", home, name="home"),
-]
+    path('', include('Recipes.urls')),
+    path('', home, name='home'),
+    path('recipe/<int:pk>/', home, name='recipe_detail'),  # Temporary, will render index.html
+    path('profile/', home, name='profile'),
+    path('login/', home, name='login'),
+    path('register/', home, name='register'),
+    path('logout/', home, name='logout'),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

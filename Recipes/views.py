@@ -4,7 +4,7 @@ from django.shortcuts import render,get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
-from rest_framework import viewsets,permissions,generics,status
+from rest_framework import viewsets,permissions,generics,status,serializers
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -17,6 +17,23 @@ import logging
 
 logger = logging.getLogger(__name__)
 # CREAT API VIEWS
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'password']
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        Profile.objects.create(user=user)  # Create profile for new user
+        return user
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]  # Allow registration without auth
+    
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer

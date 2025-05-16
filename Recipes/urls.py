@@ -1,6 +1,6 @@
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
-from .views import RecipeViewSet,IngredientViewSet,ReviewViewSet,ProfileViewSet
+from .views import RecipeViewSet,IngredientViewSet,ReviewViewSet,ProfileViewSet,UserViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from .views import FavoriteRecipeView,FavoriteRecipeListView,ReviewListCreateView,ReviewDetailView,ReviewLikeDislikeView,NotificationListView,MarkNotificationAsReadView,MarkAllNotificationsAsReadView,RecipeSearchView
 
@@ -9,6 +9,7 @@ router.register(r'Recipes',RecipeViewSet)
 router.register(r'Ingredients',IngredientViewSet)
 router.register(r'Reviews',ReviewViewSet)
 router.register(r'Profiles',ProfileViewSet)
+router.register(r'users', UserViewSet)
 
 urlpatterns = [
     path('',include(router.urls)), # this will include all the urls from the router
