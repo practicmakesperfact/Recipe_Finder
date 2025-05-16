@@ -220,6 +220,8 @@ class FavoriteRecipeListView(generics.ListAPIView):
 
 def home(request):
     return render(request, 'index.html')
+def recipe_detail(request, pk):
+    return render(request, 'recipe_detail.html', {'recipe_id': pk})
 
 
 class RecipeSearchView(generics.ListAPIView):

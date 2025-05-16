@@ -15,17 +15,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path,include
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from Recipes.views import home
+from Recipes.views import home, recipe_detail  # Import the views we’ve defined
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('Recipes.urls')),
-    path('', home, name='home'),
-    path('recipe/<int:pk>/', home, name='recipe_detail'),  # Temporary, will render index.html
-    path('profile/', home, name='profile'),
-    path('login/', home, name='login'),
-    path('register/', home, name='register'),
-    path('logout/', home, name='logout'),
+    path('', home, name='home'),  # Frontend home page
+    path('api/', include('Recipes.urls')),  # DRF API endpoints under /api/
+    path('recipe/<int:pk>/', recipe_detail, name='recipe_detail'),  # Recipe detail page
+    path('profile/', home, name='profile'),  # Placeholder for profile page
+    path('login/', home, name='login'),  # Placeholder for login page
+    path('register/', home, name='register'),  # Placeholder for register page
+    path('logout/', home, name='logout'),  # Placeholder for logout page
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
