@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <h1 class="text-3xl font-bold my-8">Your Profile</h1>
+    <h2 class="text-2xl font-bold my-4">Favorite Recipes</h2>
+    <div id="favorites-list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+    <h2 class="text-2xl font-bold my-4">Your Reviews</h2>
+    <div id="reviews-list" class="space-y-4"></div>
+
+    <script src="{% static 'js/profile.js' %}"></script>
+{% endblock %}
